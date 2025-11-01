@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pencatat Pengeluaran Bulanan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .summary-card h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .summary-card p {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .expense-list {
+            margin-top: 30px;
+        }
+
+        .expense-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .expense-item:hover {
+            transform: translateX(5px);
+            background: #e9ecef;
+        }
+
+        .expense-info {
+            flex: 1;
+        }
+
+        .expense-category {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .expense-date {
+            color: #666;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .expense-description {
+            color: #333;
+            font-weight: 500;
+            margin: 5px 0;
+        }
+
+        .expense-amount {
+            color: #667eea;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state p {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Pencatat Pengeluaran Bulanan</h1>
+        <p class="subtitle">Kelola keuangan Anda dengan mudah</p>
+
+        <div class="summary">
+            <div class="summary-card">
+                <h3>Total Pengeluaran</h3>
+                <p id="totalExpense">Rp 0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Jumlah Transaksi</h3>
+                <p id="totalCount">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Rata-rata</h3>
+                <p id="averageExpense">Rp 0</p>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 style="margin-bottom: 20px; color: #333;">Tambah Pengeluaran</h2>
+            
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="tanggal">
+            </div>
+
+            <div class="form-group">
+                <label>Kategori</label>
+                <select id="kategori">
+                    <option value="">Pilih Kategori</option>
+                    <option value="Makanan & Minuman">🍔 Makanan & Minuman</option>
+                    <option value="Transportasi">🚗 Transportasi</option>
+                    <option value="Belanja">🛒 Belanja</option>
+                    <option value="Tagihan">📄 Tagihan</option>
+                    <option value="Hiburan">🎮 Hiburan</option>
+                    <option value="Kesehatan">💊 Kesehatan</option>
+                    <option value="Pendidikan">📚 Pendidikan</option>
+                    <option value="Lainnya">📦 Lainnya</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Keterangan</label>
+                <input type="text" id="keterangan" placeholder="Contoh: Makan siang di restoran">
+            </div>
+
+            <div class="form-group">
+                <label>Jumlah (Rp)</label>
+                <input type="number" id="jumlah" placeholder="50000" min="0">
+            </div>
+
+            <button class="btn" onclick="tambahPengeluaran()">➕ Tambah Pengeluaran</button>
+        </div>
+
+        <div class="expense-list">
+            <h2 style="margin-bottom: 20px; color: #333;">Riwayat Pengeluaran</h2>
+            <div id="listPengeluaran">
+                <div class="empty-state">
+                    <p style="font-size: 40px;">📝</p>
+                    <p>Belum ada pengeluaran tercatat</p>
+                    <p>Mulai tambahkan pengeluaran Anda</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let expenses = [];
+
+        // Set tanggal hari ini sebagai default
+        document.getElementById('tanggal').valueAsDate = new Date();
+
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(angka);
+        }
+
+        function formatTanggal(tanggal) {
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            return new Date(tanggal).toLocaleDateString('id-ID', options);
+        }
+
+        function updateSummary() {
+            const total = expenses.reduce((sum, exp) => sum + exp.jumlah, 0);
+            const count = expenses.length;
+            const average = count > 0 ? total / count : 0;
+
+            document.getElementById('totalExpense').textContent = formatRupiah(total);
+            document.getElementById('totalCount').textContent = count;
+            document.getElementById('averageExpense').textContent = formatRupiah(average);
+        }
+
+        function tampilkanPengeluaran() {
+            const container = document.getElementById('listPengeluaran');
+            
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p style="font-size: 40px;">📝</p>
+                        <p>Belum ada pengeluaran tercatat</p>
+                        <p>Mulai tambahkan pengeluaran Anda</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedExpenses = [...expenses].sort((a, b) => 
+                new Date(b.tanggal) - new Date(a.tanggal)
+            );
+
+            container.innerHTML = sortedExpenses.map(exp => `
+                <div class="expense-item">
+                    <div class="expense-info">
+                        <div>
+                            <span class="expense-category">${exp.kategori}</span>
+                            <span class="expense-date">${formatTanggal(exp.tanggal)}</span>
+                        </div>
+                        <div class="expense-description">${exp.keterangan}</div>
+                        <div class="expense-amount">${formatRupiah(exp.jumlah)}</div>
+                    </div>
+                    <button class="delete-btn" onclick="hapusPengeluaran(${exp.id})">🗑️ Hapus</button>
+                </div>
+            `).join('');
+        }
+
+        function tambahPengeluaran() {
+            const tanggal = document.getElementById('tanggal').value;
+            const kategori = document.getElementById('kategori').value;
+            const keterangan = document.getElementById('keterangan').value;
+            const jumlah = parseFloat(document.getElementById('jumlah').value);
+
+            if (!tanggal || !kategori || !keterangan || !jumlah || jumlah <= 0) {
+                alert('Mohon lengkapi semua field dengan benar!');
+                return;
+            }
+
+            const newExpense = {
+                id: Date.now(),
+                tanggal,
+                kategori,
+                keterangan,
+                jumlah
+            };
+
+            expenses.push(newExpense);
+
+            // Reset form
+            document.getElementById('tanggal').valueAsDate = new Date();
+            document.getElementById('kategori').value = '';
+            document.getElementById('keterangan').value = '';
+            document.getElementById('jumlah').value = '';
+
+            updateSummary();
+            tampilkanPengeluaran();
+        }
+
+        function hapusPengeluaran(id) {
+            if (confirm('Yakin ingin menghapus pengeluaran ini?')) {
+                expenses = expenses.filter(exp => exp.id !== id);
+                updateSummary();
+                tampilkanPengeluaran();
+            }
+        }
+
+        // Inisialisasi
+        updateSummary();
+    </script>
+</body>
+</html>
