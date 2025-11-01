@@ -115,6 +115,11 @@
             transform: translateY(-2px);
         }
 
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            margin-top: 10px;
+        }
+
         .expense-list {
             margin-top: 30px;
         }
@@ -192,12 +197,42 @@
             margin-top: 10px;
             font-size: 14px;
         }
+
+        .storage-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        }
+
+        .btn-import {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>💰 Pencatat Pengeluaran Bulanan</h1>
-        <p class="subtitle">Kelola keuangan Anda dengan mudah</p>
+        <p class="subtitle">Kelola keuangan Anda dengan mudah - Data Tersimpan Otomatis</p>
+
+        <div class="storage-info">
+            ✅ Data Anda tersimpan otomatis di browser dan tidak akan hilang!
+        </div>
 
         <div class="summary">
             <div class="summary-card">
@@ -248,6 +283,14 @@
             </div>
 
             <button class="btn" onclick="tambahPengeluaran()">➕ Tambah Pengeluaran</button>
+
+            <div class="action-buttons">
+                <button class="btn btn-export" onclick="exportData()">📥 Export Data</button>
+                <button class="btn btn-import" onclick="document.getElementById('importFile').click()">📤 Import Data</button>
+            </div>
+            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+            
+            <button class="btn btn-danger" onclick="hapusSemuaData()">🗑️ Hapus Semua Data</button>
         </div>
 
         <div class="expense-list">
@@ -264,6 +307,20 @@
 
     <script>
         let expenses = [];
+
+        // FUNGSI PENYIMPANAN DATA
+        function simpanKeLocalStorage() {
+            localStorage.setItem('expenseData', JSON.stringify(expenses));
+            console.log('✅ Data tersimpan!');
+        }
+
+        function muatDariLocalStorage() {
+            const data = localStorage.getItem('expenseData');
+            if (data) {
+                expenses = JSON.parse(data);
+                console.log('✅ Data dimuat:', expenses.length, 'transaksi');
+            }
+        }
 
         // Set tanggal hari ini sebagai default
         document.getElementById('tanggal').valueAsDate = new Date();
@@ -344,6 +401,7 @@
             };
 
             expenses.push(newExpense);
+            simpanKeLocalStorage(); // SIMPAN DATA
 
             // Reset form
             document.getElementById('tanggal').valueAsDate = new Date();
@@ -353,18 +411,86 @@
 
             updateSummary();
             tampilkanPengeluaran();
+
+            alert('✅ Pengeluaran berhasil ditambahkan dan disimpan!');
         }
 
         function hapusPengeluaran(id) {
             if (confirm('Yakin ingin menghapus pengeluaran ini?')) {
                 expenses = expenses.filter(exp => exp.id !== id);
+                simpanKeLocalStorage(); // SIMPAN PERUBAHAN
                 updateSummary();
                 tampilkanPengeluaran();
             }
         }
 
-        // Inisialisasi
-        updateSummary();
+        function hapusSemuaData() {
+            if (confirm('⚠️ PERINGATAN!\n\nAnda yakin ingin menghapus SEMUA data pengeluaran?\nTindakan ini tidak dapat dibatalkan!')) {
+                if (confirm('Konfirmasi sekali lagi: Hapus semua data?')) {
+                    expenses = [];
+                    simpanKeLocalStorage();
+                    updateSummary();
+                    tampilkanPengeluaran();
+                    alert('✅ Semua data berhasil dihapus!');
+                }
+            }
+        }
+
+        // FUNGSI EXPORT DATA
+        function exportData() {
+            if (expenses.length === 0) {
+                alert('Tidak ada data untuk di-export!');
+                return;
+            }
+
+            const dataStr = JSON.stringify(expenses, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `pengeluaran_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            alert('✅ Data berhasil di-export!');
+        }
+
+        // FUNGSI IMPORT DATA
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData)) {
+                        if (confirm(`Import ${importedData.length} transaksi?\nData lama akan ditimpa!`)) {
+                            expenses = importedData;
+                            simpanKeLocalStorage();
+                            updateSummary();
+                            tampilkanPengeluaran();
+                            alert('✅ Data berhasil di-import!');
+                        }
+                    } else {
+                        alert('❌ Format file tidak valid!');
+                    }
+                } catch (error) {
+                    alert('❌ Error membaca file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset input
+            event.target.value = '';
+        }
+
+        // INISIALISASI - Muat data saat halaman dibuka
+        window.onload = function() {
+            muatDariLocalStorage();
+            updateSummary();
+            tampilkanPengeluaran();
+        };
     </script>
 </body>
 </html>
